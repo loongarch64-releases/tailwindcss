@@ -1,5 +1,5 @@
-#!/bin/sh
-set -eu
+#!/bin/bash
+set -euo pipefail
 
 UPSTREAM_OWNER=tailwindlabs
 UPSTREAM_REPO=tailwindcss

@@ -1,14 +1,15 @@
-#!/bin/sh
-set -eu
+#!/bin/bash
+set -euo pipefail
 
 UPSTREAM_OWNER=tailwindlabs
 UPSTREAM_REPO=tailwindcss
 VERSION="${1}"
+LIBC="${2}"
 echo "   🏢 Org:   ${UPSTREAM_OWNER}"
 echo "   📦 Proj:  ${UPSTREAM_REPO}"
 echo "   🏷️  Ver:   ${VERSION}"
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 DISTS="${ROOT_DIR}/dists"
 SRCS="${ROOT_DIR}/srcs"
@@ -38,9 +39,10 @@ build()
 {
     echo "🔨 [Build] Compiling source code..."
     
-    cd "${SRCS}/${VERSION}"
+    pushd "${SRCS}/${VERSION}"
     RUSTFLAGS="-C target-feature=+lsx,+lasx" \
-        cargo build --release --target loongarch64-unknown-linux-musl -p tailwind-oxide
+        cargo build --release --target "loongarch64-unknown-linux-${LIBC}" -p tailwind-oxide
+    popd
 
     echo "✅ [Build] Compilation finished."
 }
@@ -50,10 +52,11 @@ post_build()
 {
     echo "📦 [Post-Build] Organizing artifacts..."
     
-    local PRODUCT="${DISTS}/${VERSION}/libtailwind_oxide.so"
+    local PRODUCT="${DISTS}/${VERSION}/libtailwind_oxide_${LIBC}.so"
 
-    cp "${SRCS}/${VERSION}/target/loongarch64-unknown-linux-musl/release/libtailwind_oxide.so" "${PRODUCT}"
+    cp "${SRCS}/${VERSION}/target/loongarch64-unknown-linux-${LIBC}/release/libtailwind_oxide.so" "${PRODUCT}"
     chown -R "${HOST_UID}:${HOST_GID}" "${DISTS}" "${SRCS}"
+    rm -rf "${SRCS}"
     
     echo "✅ [Post-Build] Artifacts ready in ./dists/${VERSION}."
 }
