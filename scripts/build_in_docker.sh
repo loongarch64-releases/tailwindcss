@@ -38,7 +38,12 @@ for libc in "${LIBC[@]}"; do
     fi
 
     echo "🔨 Building Docker image: ${DOCKER_IMAGE_NAME}-${libc}..."
-    docker build -t "${DOCKER_IMAGE_NAME}-${libc}" -f "${DOCKERFILE_PATH}.${libc}" "${ROOT_DIR}"
+    docker buildx build \
+        --platform "${PLATFORM}" \
+        --load \
+        -t "${DOCKER_IMAGE_NAME}-${libc}" \
+        -f "${DOCKERFILE_PATH}.${libc}" \
+        "${ROOT_DIR}"
 
     echo "🏃 Running build inside ${DOCKER_IMAGE_NAME}-${libc}..."
     docker run "${RUN_PARAM[@]}" \
